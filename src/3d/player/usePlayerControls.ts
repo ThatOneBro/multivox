@@ -26,15 +26,16 @@ function maybeUpdateMovementState(
   state: Uint8Array,
   key: string,
   value: 0 | 1,
-) {
+): boolean {
   // Check if this is one of the keys we're supposed to track
   // If there's no action in the table, we're not tracking this key
   const action = MoveKeyTable[key as MoveKey];
   if (action === undefined) {
-    return;
+    return false;
   }
 
   state[action] = value;
+  return true;
 }
 
 export const usePlayerControls = () => {
@@ -46,12 +47,10 @@ export const usePlayerControls = () => {
   // TODO: We probably want to make this transitive state rather having this trigger a re-render
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      maybeUpdateMovementState(movement, e.code, 1);
-      rerender();
+      if (maybeUpdateMovementState(movement, e.code, 1)) rerender();
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      maybeUpdateMovementState(movement, e.code, 0);
-      rerender();
+      if (maybeUpdateMovementState(movement, e.code, 0)) rerender();
     };
 
     document.addEventListener("keydown", handleKeyDown);
