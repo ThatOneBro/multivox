@@ -22,7 +22,14 @@ const MoveKeyTable = {
 
 type MoveKey = keyof typeof MoveKeyTable;
 
-function setMovementState(state: Uint8Array, action: Action, value: 0 | 1) {
+function setMovementState(state: Uint8Array, key: string, value: 0 | 1) {
+  // Check if this is one of the keys we're supposed to track
+  // If there's no action in the table, we're not tracking this key
+  const action = MoveKeyTable[key as MoveKey];
+  if (action === undefined) {
+    return;
+  }
+
   state[action] = value;
 }
 
@@ -35,17 +42,11 @@ export const usePlayerControls = () => {
   // TODO: We probably want to make this transitive state rather having this trigger a re-render
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (MoveKeyTable[e.code as MoveKey] === undefined) {
-        return;
-      }
-      setMovementState(movement, MoveKeyTable[e.code as MoveKey], 1);
+      setMovementState(movement, e.code, 1);
       rerender();
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (!MoveKeyTable[e.code as MoveKey] === undefined) {
-        return;
-      }
-      setMovementState(movement, MoveKeyTable[e.code as MoveKey], 0);
+      setMovementState(movement, e.code, 0);
       rerender();
     };
 
@@ -57,8 +58,6 @@ export const usePlayerControls = () => {
       document.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
-
-  console.log(movement);
 
   return movement;
 };
